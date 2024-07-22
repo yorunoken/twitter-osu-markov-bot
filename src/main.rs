@@ -72,7 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let response = line.replace("PING", "PONG");
                     write_half.write_all(response.as_bytes()).await?;
                 } else {
-                    if let Some(message) = parse_msg(&line) {
+                    if let Some(message) = utils::parse_irc_msg(&line) {
                         utils::handle_message(message);
                     }
                 }
@@ -93,41 +93,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
-}
-
-pub struct Message {
-    pub content: String,
-    pub nickname: String,
-    pub channel: String,
-}
-
-fn parse_msg(line: &str) -> Option<Message> {
-    if line.contains("PRIVMSG") {
-        let split_args: Vec<&str> = line.splitn(2, " :").collect();
-
-        if split_args.len() == 2 {
-            let action = split_args[0];
-            let content = split_args[1];
-
-            if content.starts_with("\u{1}ACTION") {
-                return None;
-            }
-
-            if let Some(nickname_end) = action.find('!') {
-                let nickname = &action[1..nickname_end];
-
-                if let Some(channel_start) = action.find("PRIVMSG") {
-                    let channel = action[channel_start + "PRIVMSG ".len()..].trim();
-
-                    return Some(Message {
-                        content: content.to_string(),
-                        nickname: nickname.to_string(),
-                        channel: channel.to_string(),
-                    });
-                }
-            }
-        }
-    }
-
-    None
 }
