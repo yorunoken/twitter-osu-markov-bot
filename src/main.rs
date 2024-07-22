@@ -1,9 +1,6 @@
 use dotenv::dotenv;
 use std::env;
 
-use rand::rngs::OsRng;
-use rand::Rng;
-
 use rusqlite::Connection;
 
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
@@ -83,16 +80,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok::<(), Box<dyn std::error::Error>>(())
         } => (),
         _ = async {
-            let mut rng = OsRng;
             loop {
+                tokio::time::sleep(Duration::from_secs(43200)).await;
+
                 let channel = String::from("#osu");
                 let content = utils::generate_markov_message(channel).await;
 
                 println!("{:#?}", content);
 
-                // Wait a random second from 300 to 900
-                let range = rng.gen_range(300..900);
-                tokio::time::sleep(Duration::from_secs(range)).await;
             }
         } => (),
     }
