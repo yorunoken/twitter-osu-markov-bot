@@ -2,13 +2,6 @@
 
 `osu-markov` is a Twitter bot for the osu! community that fetches data from the IRC channel `#osu`, generates new messages using a Markov chain, and sends them to Twitter.
 
-## Features
-
-- Connects to the IRC server `irc.ppy.sh` to read messages from the `#osu` channel.
-- Stores messages in an SQLite database.
-- Trains a Markov chain model with the collected messages to generate new, coherent messages.
-- Posts generated messages to Twitter at random intervals.
-
 ## Getting Started
 
 ### Installation
