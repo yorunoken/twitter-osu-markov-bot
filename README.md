@@ -11,12 +11,6 @@
 
 ## Getting Started
 
-### Prerequisites
-
-- Rust and Cargo installed.
-- SQLite installed.
-- Access credentials for the IRC server and Twitter API.
-
 ### Installation
 
 1. **Clone the repository:**
