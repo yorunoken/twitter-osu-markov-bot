@@ -1,3 +1,6 @@
+use dotenv::dotenv;
+use std::env;
+
 use rand::rngs::OsRng;
 use rand::Rng;
 
@@ -12,6 +15,9 @@ mod utils;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Load the environment variables
+    dotenv().ok();
+
     let conn = Connection::open("data.db")?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS messages (
@@ -31,10 +37,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )?;
 
     // Define config
-    let username = "yorunoken";
-    let server = "irc.ppy.sh";
-    let password = "b0ee4115";
-    let port = 6667;
+    let username = env::var("USERNAME").expect("`USERNAME` is not defined in .env");
+    let server = env::var("SERVER").expect("`SERVER` is not defined in .env");
+    let password = env::var("PASSWORD").expect("`PASSWORD` is not defined in .env");
+    let port = env::var("PORT").expect("`PORT` is not defined in .env");
     let channel = "#osu";
 
     // Create connection
