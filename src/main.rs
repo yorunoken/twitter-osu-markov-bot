@@ -64,6 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_all(format!("JOIN {}\r\n", channel).as_bytes())
         .await?;
 
+    println!("Started");
     let (_s, _g) = future::join(handle_message(read_half, &mut write_half), handle_loop()).await;
 
     Ok(())
