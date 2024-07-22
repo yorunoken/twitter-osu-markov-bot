@@ -1,5 +1,8 @@
 use dotenv::dotenv;
 use std::env;
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+
+use futures::future;
 
 use rusqlite::Connection;
 
@@ -61,36 +64,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_all(format!("JOIN {}\r\n", channel).as_bytes())
         .await?;
 
-    // Get content
-    let mut reader = BufReader::new(read_half).lines();
-
-    tokio::select! {
-        _ = async {
-            while let Some(line) = reader.next_line().await? {
-                if line.contains("PING") {
-                    // Respond to PING to keep the connection alive
-                    let response = line.replace("PING", "PONG");
-                    write_half.write_all(response.as_bytes()).await?;
-                } else {
-                    if let Some(message) = utils::parse_irc_msg(&line) {
-                        utils::handle_message(message);
-                    }
-                }
-            }
-            Ok::<(), Box<dyn std::error::Error>>(())
-        } => (),
-        _ = async {
-            loop {
-                tokio::time::sleep(Duration::from_secs(43200)).await;
-
-                let channel = String::from("#osu");
-                let content = utils::generate_markov_message(channel).await;
-
-                println!("{:#?}", content);
-
-            }
-        } => (),
-    }
+    let (_s, _g) = future::join(handle_message(read_half, &mut write_half), handle_loop()).await;
 
     Ok(())
+}
+
+async fn handle_message(read_half: OwnedReadHalf, write_half: &mut OwnedWriteHalf) {
+    let mut reader = BufReader::new(read_half).lines();
+
+    while let Some(line) = reader.next_line().await.unwrap_or_default() {
+        if line.contains("PING") {
+            // Respond to PING to keep the connection alive
+            let response = line.replace("PING", "PONG");
+
+            if let Err(e) = write_half.write_all(response.as_bytes()).await {
+                eprintln!("Failed to write response: {}", e);
+            }
+        } else {
+            if let Some(message) = utils::parse_irc_msg(&line) {
+                utils::handle_message(message);
+            }
+        }
+    }
+}
+
+async fn handle_loop() {
+    loop {
+        tokio::time::sleep(Duration::from_secs(43200)).await;
+
+        let channel = String::from("#osu");
+        let content = utils::generate_markov_message(channel).await;
+
+        println!("{:#?}", content);
+    }
 }
