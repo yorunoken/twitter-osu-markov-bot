@@ -2,7 +2,7 @@ use dotenv::dotenv;
 use std::env;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 
-use futures::future;
+use futures::join;
 
 use rusqlite::Connection;
 
@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     println!("Started");
-    let (_s, _g) = future::join(handle_message(read_half, &mut write_half), handle_loop()).await;
+    join!(handle_message(read_half, &mut write_half), handle_loop());
 
     Ok(())
 }
@@ -83,6 +83,7 @@ async fn handle_message(read_half: OwnedReadHalf, write_half: &mut OwnedWriteHal
             }
         } else {
             if let Some(message) = utils::parse_irc_msg(&line) {
+                println!("{}", message.content);
                 utils::handle_message(message);
             }
         }
