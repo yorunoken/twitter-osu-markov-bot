@@ -1,13 +1,15 @@
 use dotenv::dotenv;
+use futures::join;
 use std::env;
 use std::sync::{Arc, Mutex};
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 
-use futures::join;
+use twitter_v2::authorization::Oauth1aToken;
+use twitter_v2::TwitterApi;
 
 use rusqlite::Connection;
 
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::time::Duration;
 
@@ -110,12 +112,31 @@ async fn keep_irc_alive(write_half: Arc<Mutex<OwnedWriteHalf>>) {
 }
 
 async fn handle_twitter() {
+    let consumer_key =
+        env::var("TWITTER_CONSUMER_KEY").expect("`TWITTER_CONSUMER_KEY` is not defined in .env");
+    let consumer_secret = env::var("TWITTER_CONSUMER_SECRET")
+        .expect("`TWITTER_CONSUMER_SECRET` is not defined in .env");
+    let token =
+        env::var("TWITTER_ACCESS_TOKEN").expect("`TWITTER_ACCESS_TOKEN` is not defined in .env");
+    let secret =
+        env::var("TWITTER_ACCESS_SECRET").expect("`TWITTER_ACCESS_SECRET` is not defined in .env");
+
+    let auth = Oauth1aToken::new(consumer_key, consumer_secret, token, secret);
+    let api = TwitterApi::new(auth);
+
     loop {
         println!("TWITTER: Started Twitter loop");
-        tokio::time::sleep(Duration::from_secs(20)).await;
+        // Wait 6 hours before tweeting
+        const HOURS_TO_WAIT: u64 = 6;
+        tokio::time::sleep(Duration::from_secs(60 * 60 * HOURS_TO_WAIT)).await;
 
         let channel = String::from("#osu");
         let content = utils::generate_markov_message(channel).await;
-        println!("TWITTER: markov message= {content:#?}");
+        if let Some(content) = content {
+            println!("TWITTER: markov message= {content}");
+            if let Err(e) = api.post_tweet().text(content).send().await {
+                eprintln!("There was an error while posting tweet: {}", e);
+            }
+        }
     }
 }
