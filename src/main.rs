@@ -26,15 +26,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "CREATE TABLE IF NOT EXISTS messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         content TEXT NOT NULL,
-        nickname TEXT NOT NULL,
         channel TEXT NOT NULL
         );",
         [],
     )?;
     // Insert dummy data
     conn.execute(
-        "INSERT INTO messages (content, nickname, channel)
-    SELECT 'dummy content', 'dummy nickname', '#osu'
+        "INSERT INTO messages (content, channel)
+    SELECT 'dummy content', '#osu'
     WHERE NOT EXISTS (SELECT 1 FROM messages);",
         [],
     )?;

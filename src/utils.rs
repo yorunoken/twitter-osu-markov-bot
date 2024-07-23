@@ -5,7 +5,6 @@ use crate::markov_chain;
 
 pub struct Message {
     pub content: String,
-    pub nickname: String,
     pub channel: String,
 }
 
@@ -21,18 +20,13 @@ pub fn parse_irc_msg(line: &str) -> Option<Message> {
                 return None;
             }
 
-            if let Some(nickname_end) = action.find('!') {
-                let nickname = &action[1..nickname_end];
+            if let Some(channel_start) = action.find("PRIVMSG") {
+                let channel = action[channel_start + "PRIVMSG ".len()..].trim();
 
-                if let Some(channel_start) = action.find("PRIVMSG") {
-                    let channel = action[channel_start + "PRIVMSG ".len()..].trim();
-
-                    return Some(Message {
-                        content: content.to_string(),
-                        nickname: nickname.to_string(),
-                        channel: channel.to_string(),
-                    });
-                }
+                return Some(Message {
+                    content: content.to_string(),
+                    channel: channel.to_string(),
+                });
             }
         }
     }
@@ -81,8 +75,8 @@ pub fn handle_message(message: Message) {
     let conn = Connection::open("data.db").expect("Unable to open database.");
 
     conn.execute(
-        "INSERT INTO messages (content, nickname, channel) VALUES (?1, ?2, ?3)",
-        params![message.content, message.nickname, message.channel],
+        "INSERT INTO messages (content, channel) VALUES (?1, ?2)",
+        params![message.content, message.channel],
     )
     .expect("Failed to insert word into database");
 }
