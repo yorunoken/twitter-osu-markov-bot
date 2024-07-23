@@ -1,5 +1,6 @@
 use dotenv::dotenv;
 use std::env;
+use std::sync::{Arc, Mutex};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 
 use futures::join;
@@ -64,19 +65,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_all(format!("JOIN {}\r\n", channel).as_bytes())
         .await?;
 
-    join!(handle_message(read_half, &mut write_half), handle_loop());
+    let write_half = Arc::new(Mutex::new(write_half));
+
+    join!(
+        handle_irc(read_half, Arc::clone(&write_half)),
+        handle_twitter(),
+        keep_irc_alive(Arc::clone(&write_half))
+    );
 
     Ok(())
 }
 
-async fn handle_message(read_half: OwnedReadHalf, write_half: &mut OwnedWriteHalf) {
+async fn handle_irc(read_half: OwnedReadHalf, write_half: Arc<Mutex<OwnedWriteHalf>>) {
     let mut reader = BufReader::new(read_half).lines();
 
-    while let Some(line) = reader.next_line().await.unwrap_or_default() {
+    while let Some(line) = reader.next_line().await.unwrap() {
         if line.contains("PING") {
             // Respond to PING to keep the connection alive
             let response = line.replace("PING", "PONG");
 
+            let mut write_half = write_half.lock().unwrap();
             if let Err(e) = write_half.write_all(response.as_bytes()).await {
                 eprintln!("Failed to write response: {}", e);
             }
@@ -90,13 +98,24 @@ async fn handle_message(read_half: OwnedReadHalf, write_half: &mut OwnedWriteHal
     }
 }
 
-async fn handle_loop() {
+async fn keep_irc_alive(write_half: Arc<Mutex<OwnedWriteHalf>>) {
     loop {
-        println!("PROGRAM: Started loop");
+        tokio::time::sleep(Duration::from_secs(30)).await;
+        let mut write_half = write_half.lock().unwrap();
+        if let Err(e) = write_half.write_all(b"PING :keepalive\r\n").await {
+            eprintln!("IRC: Failed to send PING: {}", e);
+        }
+        println!("IRC: Sent PING");
+    }
+}
+
+async fn handle_twitter() {
+    loop {
+        println!("TWITTER: Started Twitter loop");
         tokio::time::sleep(Duration::from_secs(20)).await;
 
         let channel = String::from("#osu");
         let content = utils::generate_markov_message(channel).await;
-        println!("PROGRAM: markov message= {content:#?}");
+        println!("TWITTER: markov message= {content:#?}");
     }
 }

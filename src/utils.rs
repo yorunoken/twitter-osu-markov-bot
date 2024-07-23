@@ -63,9 +63,9 @@ pub async fn generate_markov_message(channel: String) -> Option<String> {
 
     // I feel like this should be the least amount of data present
     // before the bot finally stops just repeating sentences.
-    // if sentences.len() < 500 {
-    //     return None;
-    // }
+    if sentences.len() < 500 {
+        return None;
+    }
 
     let mut rng = rand::thread_rng();
 
