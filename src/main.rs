@@ -64,7 +64,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_all(format!("JOIN {}\r\n", channel).as_bytes())
         .await?;
 
-    println!("Started");
     join!(handle_message(read_half, &mut write_half), handle_loop());
 
     Ok(())
@@ -81,9 +80,10 @@ async fn handle_message(read_half: OwnedReadHalf, write_half: &mut OwnedWriteHal
             if let Err(e) = write_half.write_all(response.as_bytes()).await {
                 eprintln!("Failed to write response: {}", e);
             }
+            println!("PROGRAM: Responded to PING");
         } else {
             if let Some(message) = utils::parse_irc_msg(&line) {
-                println!("{}", message.content);
+                println!("CHAT: {}", message.content);
                 utils::handle_message(message);
             }
         }
@@ -92,11 +92,11 @@ async fn handle_message(read_half: OwnedReadHalf, write_half: &mut OwnedWriteHal
 
 async fn handle_loop() {
     loop {
-        tokio::time::sleep(Duration::from_secs(43200)).await;
+        println!("PROGRAM: Started loop");
+        tokio::time::sleep(Duration::from_secs(20)).await;
 
         let channel = String::from("#osu");
         let content = utils::generate_markov_message(channel).await;
-
-        println!("{:#?}", content);
+        println!("PROGRAM: markov message= {content:#?}");
     }
 }
