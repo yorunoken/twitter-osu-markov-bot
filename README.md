@@ -24,24 +24,28 @@
 
 1. **Update env file:**
 
-    Edit the `.env.example` and delete the `.example` off of it.
+    Edit the `Secrets_example.toml` and delete the `_example` off of it.
 
     ```
-    USERNAME=
-    SERVER=
-    PASSWORD=
-    PORT=
-    TWITTER_API=
+    USERNAME =
+    SERVER =
+    PASSWORD =
+    PORT =
+    TWITTER_CONSUMER_KEY =
+    TWITTER_CONSUMER_SECRET =
+    TWITTER_ACCESS_TOKEN =
+    TWITTER_ACCESS_SECRET =
     ```
 
     The names are self-explanatory.
 
 ### Usage
 
-To start the bot, run:
+To start the bot, you a [shuttle](https://shuttle.rs) account, as I'm using it to host this bot.
+You can also do without it, just install [cargo-shuttle](https://archlinux.org/packages/extra/x86_64/cargo-shuttle/) from the official Arch repo, and run:
 
 ```sh
-cargo run
+cargo-shuttle run
 ```
 
 The bot will:
