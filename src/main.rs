@@ -146,7 +146,7 @@ async fn handle_twitter(
         println!("TWITTER: Started Twitter loop");
 
         // Wait 1 hours before tweeting
-        const HOURS_TO_WAIT: u64 = 4;
+        const HOURS_TO_WAIT: u64 = 3;
         tokio::time::sleep(Duration::from_secs(60 * 60 * HOURS_TO_WAIT)).await;
 
         let channel = String::from("#osu");
