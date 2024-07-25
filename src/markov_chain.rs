@@ -27,11 +27,11 @@ impl Chain {
             // will return ["word1", "word2"], and ["word2", "word3"]
             for window in words.windows(2) {
                 // Make sure window has two elements
-                if let [first, second] = window {
+                if let [current, next] = window {
                     self.chains
-                        .entry(first.to_string())
+                        .entry(current.to_string())
                         .or_insert_with(Vec::new)
-                        .push(second.to_string());
+                        .push(next.to_string());
                 }
             }
         }
