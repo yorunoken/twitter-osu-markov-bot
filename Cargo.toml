@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1.38.1", features = ["full"] }
-rusqlite = "0.32.0"
+rusqlite = { version = "0.32.0", features = ["bundled"] }
 rand = "0.8.5"
 dotenv = "0.15.0"
-twitter-v2 = "0.1.8"
+twitter-v2 = { version = "0.1.8", features = ["rustls-tls"] }
 futures = "0.3.30"

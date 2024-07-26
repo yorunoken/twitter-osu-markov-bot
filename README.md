@@ -47,6 +47,16 @@ To start the bot, run:
 cargo run
 ```
 
+### Compiling for aarch64
+
+1. **Download and install cross**
+    navigate to [cross's github repository](https://github.com/cross-rs/cross) and follow instructions
+
+2. **Use the aarch64-unknown-linux-gnu target**
+    ```sh
+    cross build -r --target aarch64-unknown-linux-gnu
+    ```
+
 The bot will:
 
 1. Create a database for message storage
