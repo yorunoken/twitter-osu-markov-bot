@@ -1,4 +1,4 @@
-name: Rust
+name: Linux Build
 
 on:
     push:
@@ -15,7 +15,14 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - name: Build
+            - name: Build for Linux
               run: cargo build -r --verbose
+
             - name: Run tests
               run: cargo test --verbose
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v3
+              with:
+                  name: osu-markov_x86_64
+                  path: target/release/osu-markov
